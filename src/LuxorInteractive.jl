@@ -7,6 +7,7 @@ using Luxor
 export @group
 export parsedrawing, opentagluxor, closetagluxor, cleargroups
 export applyid!, applygroupclass!
+export extractpathsstyles!
 # Write your package code here.
 
 """
@@ -123,21 +124,22 @@ function applygroupclass!(dxml::EzXML.Document)
                 gtag = opentagluxor(j)
             end
             if !isnothing(closetagluxor(j))
-                j["class"] = gtag * " " * j["id"]
+                j["class"] = gtag * " " * j["id"] * " " * root(dxml)["id"]
                 gtag = nothing
             end
             if !isnothing(gtag)
-                j["class"] = gtag * " " * j["id"]
+                j["class"] = gtag * " " * j["id"] * " " * root(dxml)["id"]
             end
         end
     end
 end
 
-function extratpathsstyles(dxml::EzXML.Document)
+function extractpathsstyles!(dxml::EzXML.Document)
     pathstyles = ""
     for i in eachelement(root(dxml))
         for j in eachelement(i)
-            pathstyles *= "\n" * root(dxml)["id"] * ">." * j["id"] * "{" * j["style"] * "}"
+            # pathstyles *= "\nsvg#" * root(dxml)["id"] * " ." * j["id"] * "{" * j["style"] * "}"
+            pathstyles *= "\n." * j["id"] * "." * root(dxml)["id"] * "{" * j["style"] * "}"
             delete!(j, "style")
         end
     end
@@ -149,7 +151,8 @@ function parsedrawing(d::Drawing)
     dxml = parsexml(String(copy(d.bufferdata)))
     applyid!(dxml)
     applygroupclass!(dxml)
-    return string(root(dxml))
+    return dxml
+    # return string(root(dxml))
 end
 
 end
